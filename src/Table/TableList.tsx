@@ -1,6 +1,7 @@
-import { useState } from "react";;
+import { useState } from "react";
 import TableCard from "./TableCard";
 import type { Table } from "./Types";
+import BuyOrderTable from "./BuyOrderTable";
 
 const TableList = () => {
     const [tables] = useState<Table[]>([
@@ -14,14 +15,28 @@ const TableList = () => {
     };
 
     return (
-        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tables.map((table) => (
-                <TableCard
-                    key={table.id}
-                    table={table}
-                    onClick={() => handleClick(table)}
-                />
-            ))}
+        <div className="cafe-theme cafe-fade-in">
+            <div className="max-w-7xl mx-auto p-6">
+                <div className="cafe-header mb-8">
+                    <h1 className="text-4xl font-bold text-center">🍽️ Table Management</h1>
+                    <p className="text-center mt-2 opacity-90">Manage your café tables</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {tables.map((table) => (
+                        <div key={table.id}>
+                            {table.id === 3 ? (
+                                <BuyOrderTable />
+                            ) : (
+                                <TableCard
+                                    table={table}
+                                    onClick={() => handleClick(table)}
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

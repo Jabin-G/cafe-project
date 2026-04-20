@@ -1,125 +1,343 @@
-import { useState, useEffect, type JSXElementConstructor, type Key, type ReactElement, type ReactNode, type ReactPortal } from "react";
+import { useState, useEffect } from "react";
+import { MdDelete, MdPrint, MdDownload } from "react-icons/md";
+
+interface MenuItem {
+    id: string;
+    name: string;
+    price: number;
+    category: string;
+}
+
+interface BillItem {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
+interface Bill {
+    billId: string;
+    items: BillItem[];
+    total: number;
+    date: string;
+    customerName: string;
+}
+
+const MENU_ITEMS: MenuItem[] = [
+    { id: "1", name: "Espresso", price: 50, category: "Coffee" },
+    { id: "2", name: "Cappuccino", price: 80, category: "Coffee" },
+    { id: "3", name: "Latte", price: 90, category: "Coffee" },
+    { id: "4", name: "Americano", price: 60, category: "Coffee" },
+    { id: "5", name: "Croissant", price: 100, category: "Bakery" },
+    { id: "6", name: "Sandwich", price: 150, category: "Food" },
+    { id: "7", name: "Salad", price: 120, category: "Food" },
+    { id: "8", name: "Pastry", price: 80, category: "Bakery" },
+    { id: "9", name: "Iced Tea", price: 70, category: "Beverages" },
+    { id: "10", name: "Cold Coffee", price: 100, category: "Beverages" },
+];
 
 function Billing() {
-    // Load bills from localStorage
-    const [bills, setBills] = useState(() => {
-        const savedBills = localStorage.getItem("bills");
-        return savedBills ? JSON.parse(savedBills) : [];
+    const [currentItems, setCurrentItems] = useState<BillItem[]>([]);
+    const [customerName, setCustomerName] = useState("");
+    const [bills, setBills] = useState<Bill[]>(() => {
+        const saved = localStorage.getItem("café-bills");
+        return saved ? JSON.parse(saved) : [];
     });
 
-    // Form inputs
-    const [newBill, setNewBill] = useState({
-        id: "",
-        customer: "",
-        amount: "",
-        date: "",
-        status: "Pending",
-    });
-
-    // Save bills to localStorage whenever they change
     useEffect(() => {
-        localStorage.setItem("bills", JSON.stringify(bills));
+        localStorage.setItem("café-bills", JSON.stringify(bills));
     }, [bills]);
 
-    // Add new bill
-    const addBill = () => {
-        if (!newBill.id || !newBill.customer || !newBill.amount || !newBill.date) {
-            alert("Please fill in all fields!");
+    const addItem = (menuItem: MenuItem) => {
+        const existing = currentItems.find(item => item.id === menuItem.id);
+        if (existing) {
+            setCurrentItems(currentItems.map(item =>
+                item.id === menuItem.id ? { ...item, quantity: item.quantity + 1 } : item
+            ));
+        } else {
+            setCurrentItems([...currentItems, { ...menuItem, quantity: 1 }]);
+        }
+    };
+
+    const removeItem = (id: string) => {
+        setCurrentItems(currentItems.filter(item => item.id !== id));
+    };
+
+    const updateQuantity = (id: string, quantity: number) => {
+        if (quantity <= 0) {
+            removeItem(id);
+        } else {
+            setCurrentItems(currentItems.map(item =>
+                item.id === id ? { ...item, quantity } : item
+            ));
+        }
+    };
+
+    const calculateTotal = () => {
+        return currentItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    };
+
+    const generateBillId = () => {
+        return `BILL-${Date.now()}`;
+    };
+
+    const saveBill = () => {
+        if (currentItems.length === 0) {
+            alert("Please add items to the bill!");
             return;
         }
+        const total = calculateTotal();
+        const newBill: Bill = {
+            billId: generateBillId(),
+            items: currentItems,
+            total,
+            date: new Date().toLocaleString(),
+            customerName: customerName || "Walk-in Customer",
+        };
         setBills([...bills, newBill]);
-        setNewBill({ id: "", customer: "", amount: "", date: "", status: "Pending" });
+        printReceipt(newBill);
+        setCurrentItems([]);
+        setCustomerName("");
     };
 
-    // Delete bill
-    const deleteBill = (id: any) => {
-        const updated = bills.filter((b: { id: any; }) => b.id !== id);
-        setBills(updated);
+    const printReceipt = (bill: Bill) => {
+        const receiptContent = `
+        ╔══════════════════════════════════╗
+        ║     CAFÉ BILLING RECEIPT          ║
+        ╚══════════════════════════════════╝
+        
+        Bill ID: ${bill.billId}
+        Date: ${bill.date}
+        Customer: ${bill.customerName}
+        
+        ──────────────────────────────────
+        ITEMS:
+        ──────────────────────────────────
+        ${bill.items.map(item => `${item.name.padEnd(15)} x${item.quantity.toString().padStart(2)} = ₹${(item.price * item.quantity).toString().padStart(6)}`).join('\n')}
+        ──────────────────────────────────
+        TOTAL: ₹${bill.total.toString().padStart(30)}
+        ──────────────────────────────────
+        
+        Thank You for your purchase!
+        `;
+        const printWindow = window.open("", "", "height=600,width=500");
+        if (printWindow) {
+            printWindow.document.write(`<pre>${receiptContent}</pre>`);
+            printWindow.document.close();
+            printWindow.print();
+        }
     };
+
+    const deleteBill = (billId: string) => {
+        setBills(bills.filter(bill => bill.billId !== billId));
+    };
+
+    const downloadDailySales = () => {
+        const today = new Date().toDateString();
+        const todayBills = bills.filter(b => b.date.includes(today));
+        const totalSales = todayBills.reduce((sum, bill) => sum + bill.total, 0);
+
+        const report = `
+DAILY SALES REPORT - ${today}
+
+Total Bills: ${todayBills.length}
+Total Sales: ₹${totalSales}
+
+DETAILED BILLS:
+${todayBills.map(bill => `
+Bill ID: ${bill.billId}
+Customer: ${bill.customerName}
+Time: ${bill.date}
+Amount: ₹${bill.total}
+Items: ${bill.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}
+`).join('\n')}
+        `;
+
+        const element = document.createElement("a");
+        element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(report));
+        element.setAttribute("download", `sales-report-${today}.txt`);
+        element.style.display = "none";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    };
+
+    const categories = [...new Set(MENU_ITEMS.map(item => item.category))];
+    const total = calculateTotal();
 
     return (
-        <div className="p-2 bg-white rounded-xl shadow-lg max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Billing System</h1>
+        <div className="cafe-theme cafe-fade-in">
+            <div className="max-w-7xl mx-auto p-6">
+                <div className="cafe-header mb-8">
+                    <h1 className="text-4xl font-bold text-center">☕ Café Billing System</h1>
+                    <p className="text-center mt-2 opacity-90">Professional Point of Sale</p>
+                </div>
 
-            {/* Add Bill Form */}
-            <div className="mb-6 grid grid-cols-5 gap-4">
-                <input
-                    type="text"
-                    placeholder="Invoice ID"
-                    className="border p-2 rounded"
-                    value={newBill.id}
-                    onChange={(e) => setNewBill({ ...newBill, id: e.target.value })}
-                />
-                <input
-                    type="text"
-                    placeholder="Customer Name"
-                    className="border p-2 rounded"
-                    value={newBill.customer}
-                    onChange={(e) => setNewBill({ ...newBill, customer: e.target.value })}
-                />
-                <input
-                    type="text"
-                    placeholder="Amount ($)"
-                    className="border p-2 rounded"
-                    value={newBill.amount}
-                    onChange={(e) => setNewBill({ ...newBill, amount: e.target.value })}
-                />
-                <input
-                    type="date"
-                    className="border p-2 rounded"
-                    value={newBill.date}
-                    onChange={(e) => setNewBill({ ...newBill, date: e.target.value })}
-                />
-                <button
-                    className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700"
-                    onClick={addBill}
-                >
-                    Add Bill
-                </button>
-            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Menu Section */}
+                    <div className="lg:col-span-2">
+                        <div className="cafe-card p-6">
+                            <h2 className="text-2xl font-bold text-center mb-6" style={{ color: 'var(--cafe-text-primary)' }}>🍽️ Menu Items</h2>
+                            {categories.map(category => (
+                                <div key={category} className="mb-6">
+                                    <h3 className="text-lg font-semibold mb-3 pb-2 border-b-2" style={{ color: 'var(--cafe-primary)', borderColor: 'var(--cafe-border-medium)' }}>
+                                        {category}
+                                    </h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {MENU_ITEMS.filter(item => item.category === category).map(item => (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => addItem(item)}
+                                                className="cafe-menu-item text-center"
+                                            >
+                                                <div className="font-semibold mb-1" style={{ color: 'var(--cafe-text-primary)' }}>{item.name}</div>
+                                                <div className="font-bold text-lg" style={{ color: 'var(--cafe-primary)' }}>₹{item.price}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-            {/* Billing Table */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-gray-700 font-semibold">Invoice ID</th>
-                            <th className="px-6 py-3 text-left text-gray-700 font-semibold">Customer</th>
-                            <th className="px-6 py-3 text-left text-gray-700 font-semibold">Amount</th>
-                            <th className="px-6 py-3 text-left text-gray-700 font-semibold">Date</th>
-                            <th className="px-6 py-3 text-left text-gray-700 font-semibold">Status</th>
-                            <th className="px-6 py-3 text-left text-gray-700 font-semibold">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {bills.map((bill: { id: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; customer: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; amount: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; date: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; status: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }, i: Key | null | undefined) => (
-                            <tr key={i} className="hover:bg-gray-50 transition-colors duration-200">
-                                <td className="px-6 py-4">{bill.id}</td>
-                                <td className="px-6 py-4">{bill.customer}</td>
-                                <td className="px-6 py-4">{bill.amount}</td>
-                                <td className="px-6 py-4">{bill.date}</td>
-                                <td
-                                    className={`px-6 py-4 font-medium ${bill.status === "Paid"
-                                        ? "text-green-600"
-                                        : bill.status === "Pending"
-                                            ? "text-yellow-600"
-                                            : "text-red-600"
-                                        }`}
+                    {/* Bill Section */}
+                    <div className="lg:col-span-1">
+                        <div className="cafe-card p-6 sticky top-6">
+                            <h2 className="text-2xl font-bold text-center mb-4" style={{ color: 'var(--cafe-text-primary)' }}>🧾 Current Bill</h2>
+
+                            {/* Customer Name */}
+                            <input
+                                type="text"
+                                placeholder="Customer Name (Optional)"
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="cafe-input w-full mb-4"
+                            />
+
+                            {/* Bill Items */}
+                            <div className="max-h-96 overflow-y-auto cafe-scrollbar bg-gray-50 rounded-lg p-4 mb-4">
+                                {currentItems.length === 0 ? (
+                                    <p className="text-gray-500 text-center py-8">No items added</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {currentItems.map(item => (
+                                            <div key={item.id} className="bg-white p-3 rounded-lg border" style={{ borderColor: 'var(--cafe-border-light)' }}>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="font-semibold" style={{ color: 'var(--cafe-text-primary)' }}>{item.name}</span>
+                                                    <button
+                                                        onClick={() => removeItem(item.id)}
+                                                        className="text-red-500 hover:text-red-700 transition-all"
+                                                    >
+                                                        <MdDelete size={18} />
+                                                    </button>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                            className="cafe-button-secondary px-2 py-1 text-xs"
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="w-6 text-center font-bold" style={{ color: 'var(--cafe-text-primary)' }}>{item.quantity}</span>
+                                                        <button
+                                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                            className="cafe-button-secondary px-2 py-1 text-xs"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    <span className="font-bold" style={{ color: 'var(--cafe-primary)' }}>₹{item.price * item.quantity}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Total */}
+                            <div className="rounded-lg p-4 mb-4" style={{ background: 'linear-gradient(135deg, var(--cafe-secondary-light) 0%, var(--cafe-secondary) 100%)' }}>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span style={{ color: 'var(--cafe-text-secondary)' }}>Subtotal:</span>
+                                    <span className="font-semibold" style={{ color: 'var(--cafe-text-primary)' }}>₹{total}</span>
+                                </div>
+                                <div className="border-t-2 pt-2" style={{ borderColor: 'var(--cafe-border-medium)' }}>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xl font-bold" style={{ color: 'var(--cafe-text-primary)' }}>Total:</span>
+                                        <span className="text-2xl font-bold" style={{ color: 'var(--cafe-primary)' }}>₹{total}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="space-y-2">
+                                <button
+                                    onClick={saveBill}
+                                    className="cafe-button-primary w-full flex items-center justify-center gap-2"
                                 >
-                                    {bill.status}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <button
-                                        className="text-red-500 hover:text-red-700"
-                                        onClick={() => deleteBill(bill.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    <MdPrint /> Generate Bill
+                                </button>
+                                <button
+                                    onClick={() => setCurrentItems([])}
+                                    className="cafe-button-secondary w-full"
+                                >
+                                    Clear Bill
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Daily Sales Section */}
+                <div className="mt-8 cafe-card p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold" style={{ color: 'var(--cafe-text-primary)' }}>📊 Daily Sales Record</h2>
+                        <button
+                            onClick={downloadDailySales}
+                            className="cafe-button-accent flex items-center gap-2"
+                        >
+                            <MdDownload /> Download Report
+                        </button>
+                    </div>
+
+                    {bills.length === 0 ? (
+                        <p className="text-gray-500 text-center py-8">No bills generated yet</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="cafe-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Bill ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th className="text-right">Amount</th>
+                                        <th className="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {bills.map(bill => (
+                                        <tr key={bill.billId} className="hover:bg-gray-50">
+                                            <td className="font-mono" style={{ color: 'var(--cafe-text-secondary)' }}>{bill.billId}</td>
+                                            <td style={{ color: 'var(--cafe-text-primary)' }}>{bill.customerName}</td>
+                                            <td style={{ color: 'var(--cafe-text-secondary)' }}>{bill.date}</td>
+                                            <td style={{ color: 'var(--cafe-text-secondary)' }}>{bill.items.length} items</td>
+                                            <td className="font-bold text-right" style={{ color: 'var(--cafe-primary)' }}>₹{bill.total}</td>
+                                            <td className="text-center">
+                                                <button
+                                                    onClick={() => deleteBill(bill.billId)}
+                                                    className="text-red-500 hover:text-red-700 transition-all"
+                                                >
+                                                    <MdDelete size={20} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

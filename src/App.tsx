@@ -5,13 +5,13 @@ import Login from "./login/login";
 import Billing from "./billing";
 import EmployeeTable from "./Employees/EmployeeTable";
 import OtpPage from "./login/Otppage";
-// import ForgotPassword from "./login/ForgotPassword";
 import Register from "./login/Register";
 import GmailMenu from "./login/GmailMenu";
 import ResetPassword from "./login/reset_password";
-import TableList from "./Table";
+import TableList from "./Table/TableList";
 import VendorTable from "./purchase/VendorTable";
 import Home from "./Dashboard/Home";
+import ForgotPassword from "./login/forgotpassword";
 // import { useEffect } from "react";
 
 // Layout component for authenticated pages
@@ -33,33 +33,17 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  // const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   const savedUser = localStorage.getItem("user");
-
-  //   if (savedUser) {
-  //     navigate("/dashboard");
-  //   } else {
-  //     navigate("/login");
-  //   }
-  // }, []);
   return (
     <Router>
       <Routes>
 
-        {/* LOGIN / AUTH PAGES (no sidebar) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* <Route path="/forgotpassword" element={<ForgotPassword />} /> */}
+        <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/otp" element={<OtpPage />} />
         <Route path="/gmailmenu" element={<GmailMenu />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
-        {/* Redirect root → login */}
         <Route path="/" element={<Navigate to="/login" />} />
-
-        {/* DASHBOARD ROUTES (with persistent sidebar) */}
         <Route path="/dashboard" element={<DashboardLayout><Home /></DashboardLayout>} />
         <Route path="/billing" element={<DashboardLayout><Billing /></DashboardLayout>} />
         <Route path="/employees" element={<DashboardLayout><EmployeeTable /></DashboardLayout>} />

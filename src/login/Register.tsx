@@ -26,7 +26,6 @@ const Register: React.FC = () => {
 
     return (
         <div className="flex min-h-screen">
-            {/* Left Panel */}
             <div className="w-1/2 bg-blue-600 text-white flex flex-col justify-center items-center px-12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-blue-600 opacity-90"></div>
                 <div className="relative z-10 text-center">

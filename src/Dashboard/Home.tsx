@@ -48,78 +48,75 @@ function Home() {
 
 
     return (
-        <main className="space-y-6 p-full bg-gray-50 min-h-screen">
-            <h1 className="text-2xl font-semibold text-gray-800">Real-time Overview</h1>
+        <main className="cafe-theme space-y-6 p-6">
+            <div className="cafe-header mb-8">
+                <h1 className="text-3xl font-bold text-center">📊 Real-time Overview</h1>
+                <p className="text-center mt-2 opacity-90">Your café performance at a glance</p>
+            </div>
 
-            {/* Overview Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {overviewCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
-                        <div key={i} className="bg-white rounded-2xl shadow-lg p-6 flex flex-col hover:scale-105 transition-transform duration-300">
+                        <div key={i} className="cafe-card p-6 flex flex-col hover:scale-105 transition-all duration-300">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-gray-600 font-medium">{card.title}</h3>
-                                <Icon className={`text-2xl ${card.color}`} />
+                                <h3 className="font-medium" style={{ color: 'var(--cafe-text-secondary)' }}>{card.title}</h3>
+                                <Icon className="text-2xl" style={{ color: 'var(--cafe-primary)' }} />
                             </div>
-                            <h1 className="text-4xl font-bold text-gray-800 mt-3">{card.value}</h1>
-                            <span className="text-green-500 mt-1 text-sm">{card.percent}</span>
+                            <h1 className="text-4xl font-bold mt-3" style={{ color: 'var(--cafe-text-primary)' }}>{card.value}</h1>
+                            <span className="mt-1 text-sm" style={{ color: 'var(--cafe-success)' }}>{card.percent}</span>
                         </div>
                     )
                 })}
             </div>
 
-            {/* Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center justify-center">
+                <div className="cafe-card p-6 flex items-center justify-center">
                     <LineChart />
                 </div>
-                <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center justify-center">
+                <div className="cafe-card p-6 flex items-center justify-center">
                     <DashboardCharts />
                 </div>
-                <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center justify-center">
+                <div className="cafe-card p-6 flex items-center justify-center">
                     <RevenueDoughnut />
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statsCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
-                        <div key={i} className="bg-white rounded-2xl shadow-lg p-6 flex flex-col hover:scale-105 transition-transform duration-300">
+                        <div key={i} className="cafe-card p-6 flex flex-col hover:scale-105 transition-all duration-300">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-gray-600 font-medium">{card.title}</h3>
-                                <Icon className={`text-2xl ${card.color}`} />
+                                <h3 className="font-medium" style={{ color: 'var(--cafe-text-secondary)' }}>{card.title}</h3>
+                                <Icon className="text-2xl" style={{ color: 'var(--cafe-primary)' }} />
                             </div>
-                            <h1 className="text-3xl font-bold text-gray-800 mt-3">{card.value}</h1>
+                            <h1 className="text-3xl font-bold mt-3" style={{ color: 'var(--cafe-text-primary)' }}>{card.value}</h1>
                         </div>
                     )
                 })}
             </div>
 
-            {/* Recent Orders Table */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h2>
-                <div className="max-h-96 overflow-y-auto border rounded-xl">
-                    <table className="w-full text-left text-gray-600">
+            <div className="cafe-card p-6">
+                <h2 className="text-xl font-bold mb-6 text-center" style={{ color: 'var(--cafe-text-primary)' }}>📋 Recent Orders</h2>
+                <div className="max-h-96 overflow-y-auto cafe-scrollbar border rounded-xl" style={{ borderColor: 'var(--cafe-border-light)' }}>
+                    <table className="cafe-table w-full">
                         <thead className="sticky top-0 bg-white z-10">
-                            <tr className="border-b">
-                                <th className="px-4 py-2">Product</th>
-                                <th className="px-4 py-2">Date</th>
-                                <th className="px-4 py-2">Amount</th>
-                                <th className="px-4 py-2">Status</th>
+                            <tr>
+                                <th>Product</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {recentOrders.map((order, i) => (
-                                <tr key={i} className="border-b hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 py-2">{order.name}</td>
-                                    <td className="px-4 py-2">{order.date}</td>
-                                    <td className="px-4 py-2">{order.amount}</td>
-                                    <td className="px-4 py-2">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'Paid'
-                                            ? 'bg-green-100 text-green-600'
-                                            : 'bg-yellow-100 text-yellow-600'
+                                <tr key={i} className="border-b hover:bg-gray-50 transition-colors" style={{ borderColor: 'var(--cafe-border-light)' }}>
+                                    <td style={{ color: 'var(--cafe-text-primary)' }}>{order.name}</td>
+                                    <td style={{ color: 'var(--cafe-text-secondary)' }}>{order.date}</td>
+                                    <td className="font-bold" style={{ color: 'var(--cafe-primary)' }}>{order.amount}</td>
+                                    <td>
+                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${order.status === 'Paid' ? 'cafe-status-completed' : 'cafe-status-pending'
                                             }`}>
                                             {order.status}
                                         </span>
@@ -131,15 +128,14 @@ function Home() {
                 </div>
             </div>
 
-            {/* Footer */}
-            <footer className="bg-white border-t py-6 mt-6">
+            <footer className="cafe-card py-6 mt-6">
                 <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
-                    <p className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} My Website. All rights reserved.</p>
+                    <p className="text-sm opacity-80">&copy; {new Date().getFullYear()} Café Manager. All rights reserved.</p>
                     <div className="flex space-x-6 mt-3 md:mt-0">
-                        <a href="#" className="text-gray-600 hover:text-blue-600 text-sm transition">Support</a>
-                        <a href="#" className="text-gray-600 hover:text-blue-600 text-sm transition">Help Center</a>
-                        <a href="#" className="text-gray-600 hover:text-blue-600 text-sm transition">Privacy</a>
-                        <a href="#" className="text-gray-600 hover:text-blue-600 text-sm transition">Terms</a>
+                        <a href="#" className="opacity-80 hover:opacity-100 text-sm transition-all" style={{ color: 'var(--cafe-text-secondary)' }}>Support</a>
+                        <a href="#" className="opacity-80 hover:opacity-100 text-sm transition-all" style={{ color: 'var(--cafe-text-secondary)' }}>Help Center</a>
+                        <a href="#" className="opacity-80 hover:opacity-100 text-sm transition-all" style={{ color: 'var(--cafe-text-secondary)' }}>Privacy</a>
+                        <a href="#" className="opacity-80 hover:opacity-100 text-sm transition-all" style={{ color: 'var(--cafe-text-secondary)' }}>Terms</a>
                     </div>
                 </div>
             </footer>

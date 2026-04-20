@@ -46,16 +46,16 @@ function Sidebar() {
     ];
 
     return (
-        <aside className="h-screen flex flex-col justify-between bg-white border-r border-gray-200 shadow-sm">
+        <aside className="h-screen flex flex-col justify-between cafe-sidebar">
 
             {/* Logo */}
-            <div className="flex items-center justify-center h-16 border-b border-gray-100">
-                <CgAbstract className="text-2xl text-blue-600 mr-2" />
-                <span className="text-lg font-semibold text-gray-800">Restaurant & Cafe</span>
+            <div className="flex items-center justify-center h-16 border-b" style={{ borderColor: 'var(--cafe-border-medium)' }}>
+                <CgAbstract className="text-2xl mr-2" style={{ color: 'var(--cafe-accent)' }} />
+                <span className="text-lg font-semibold" style={{ color: 'var(--cafe-text-primary)' }}>☕ Café Manager</span>
             </div>
 
             {/* Menu */}
-            <ul className="flex-1 mt-4 space-y-1 overflow-y-auto">
+            <ul className="flex-1 mt-4 space-y-1 overflow-y-auto cafe-scrollbar">
 
                 {menuItems.map((item, index) => {
                     const isActive = location.pathname === item.path;
@@ -70,21 +70,25 @@ function Sidebar() {
                                     {/* Parent item */}
                                     <button
                                         onClick={() => toggleMenu(item.label)}
-                                        className={`w-full flex items-center justify-between px-5 py-2.5 rounded-md
+                                        className={`w-full flex items-center justify-between px-5 py-2.5 rounded-md transition-all
                                             ${(isActive || isChildActive)
-                                                ? 'bg-blue-50 text-blue-600 font-medium'
-                                                : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                                                ? 'bg-white font-medium shadow-md'
+                                                : 'text-gray-700 hover:bg-white hover:shadow-sm'
                                             }`}
+                                        style={{
+                                            color: (isActive || isChildActive) ? 'var(--cafe-primary)' : 'var(--cafe-text-secondary)',
+                                            backgroundColor: (isActive || isChildActive) ? 'white' : 'transparent'
+                                        }}
                                     >
                                         <div className="flex items-center">
-                                            <span className="text-lg mr-3">{item.icon}</span>
+                                            <span className="text-lg mr-3" style={{ color: (isActive || isChildActive) ? 'var(--cafe-primary)' : 'var(--cafe-text-secondary)' }}>{item.icon}</span>
                                             {item.label}
                                         </div>
 
                                         {openMenu === item.label ? (
-                                            <IoIosArrowDown className="text-lg" />
+                                            <IoIosArrowDown className="text-lg" style={{ color: 'var(--cafe-primary)' }} />
                                         ) : (
-                                            <IoIosArrowForward className="text-lg" />
+                                            <IoIosArrowForward className="text-lg" style={{ color: 'var(--cafe-text-secondary)' }} />
                                         )}
                                     </button>
 
@@ -97,11 +101,14 @@ function Sidebar() {
                                                     <li key={i}>
                                                         <Link
                                                             to={child.path}
-                                                            className={`block px-3 py-2 rounded-md text-sm
-                                                                ${isChild
-                                                                    ? 'text-blue-600 bg-blue-50 font-medium'
-                                                                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                                                            className={`block px-3 py-2 rounded-md text-sm transition-all ${isChild
+                                                                    ? 'font-medium shadow-sm'
+                                                                    : 'hover:shadow-sm'
                                                                 }`}
+                                                            style={{
+                                                                color: isChild ? 'var(--cafe-primary)' : 'var(--cafe-text-secondary)',
+                                                                backgroundColor: isChild ? 'white' : 'transparent'
+                                                            }}
                                                         >
                                                             {child.label}
                                                         </Link>
@@ -115,13 +122,16 @@ function Sidebar() {
                                 // Normal single item
                                 <Link
                                     to={item.path}
-                                    className={`flex items-center px-5 py-2.5 rounded-md
-                                        ${isActive
-                                            ? 'bg-blue-50 text-blue-600 font-medium'
-                                            : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                                    className={`flex items-center px-5 py-2.5 rounded-md transition-all ${isActive
+                                            ? 'bg-white font-medium shadow-md'
+                                            : 'text-gray-700 hover:bg-white hover:shadow-sm'
                                         }`}
+                                    style={{
+                                        color: isActive ? 'var(--cafe-primary)' : 'var(--cafe-text-secondary)',
+                                        backgroundColor: isActive ? 'white' : 'transparent'
+                                    }}
                                 >
-                                    <span className="text-lg mr-3">{item.icon}</span>
+                                    <span className="text-lg mr-3" style={{ color: isActive ? 'var(--cafe-primary)' : 'var(--cafe-text-secondary)' }}>{item.icon}</span>
                                     {item.label}
                                 </Link>
                             )}
@@ -132,10 +142,11 @@ function Sidebar() {
             </ul>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-4 border-t" style={{ borderColor: 'var(--cafe-border-medium)' }}>
                 <Link
                     to="/settings"
-                    className="flex items-center px-4 py-2 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-md"
+                    className="flex items-center px-4 py-2 rounded-md transition-all hover:bg-white hover:shadow-sm"
+                    style={{ color: 'var(--cafe-text-secondary)' }}
                 >
                     <BsFillGearFill className="text-lg mr-3" /> Settings
                 </Link>
